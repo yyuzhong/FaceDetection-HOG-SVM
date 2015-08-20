@@ -1,0 +1,31 @@
+
+#define the tool chain related variables.
+
+TOOLCHAIN     = GCC
+
+
+ifeq ($(TOOLCHAIN), GCC)
+#CFLAGS += -O0
+else
+#PREFIX = /usr/bin
+endif
+
+#GOAL =  Infiniti
+
+UNAME := $(shell uname)
+
+
+# -- Common Message, please don't remove. --
+MSG_SPLIT_LINE =
+MSG_COMPILING = @$(ECHO) "   Compiling <$<>"
+MSG_GOAL_OK = @$(ECHO) "***" $(GOAL) "is built successfully! ***"
+
+
+CC      = $(PREFIX)gcc
+AS      = $(PREFIX)as
+AR      = $(PREFIX)ar
+LD      = $(PREFIX)ld
+OBJDUMP = $(PREFIX)objdump
+OBJCOPY = $(PREFIX)objcopy
+NM      = $(PREFIX)nm
+
