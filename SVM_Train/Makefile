@@ -70,7 +70,7 @@ LFLAGS+= -ldl
 # Intermediate objects
 #---------------------------------------------------------------------------
 #OBJS += svmTraining.o
-OBJS += svmTrainFault.o
+OBJS += svmFaultTrain.o
 
 #OBJS += svmlight/svm_hideo.o
 #---------------------------------------------------------------------------

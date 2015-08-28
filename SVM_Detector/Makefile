@@ -33,9 +33,9 @@ LIBS += $(LIB_PATH)/libopencv_flann.a
 LIBS += $(LIB_PATH)/libopencv_imgcodecs.a
 LIBS += $(LIB_PATH)/libopencv_objdetect.a
 LIBS += $(LIB_PATH)/libopencv_imgproc.a
+LIBS += $(LIB_PATH)/libopencv_ml.a
 LIBS += $(LIB_PATH)/libopencv_core.a
 LIBS += $(LIB_PATH)/libopencv_highgui.a
-LIBS += $(LIB_PATH)/libopencv_ml.a
 LIBS += $(LIB_PATH)/libopencv_hal.a
 LIBS += $(LIB_PATH)/libopencv_videoio.a
 
@@ -68,7 +68,8 @@ LFLAGS+= -ldl
 #---------------------------------------------------------------------------
 # Intermediate objects
 #---------------------------------------------------------------------------
-OBJS += svmDetector.o
+#OBJS += svmDetector.o
+OBJS += svmFaultDetector.o
 
 #OBJS += svmlight/svm_hideo.o
 #---------------------------------------------------------------------------

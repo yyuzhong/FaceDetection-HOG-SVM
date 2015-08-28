@@ -86,6 +86,7 @@ bool trainFaultSVM(String* dataTrainPath, String* labelTrainFile)
             fread(&tmpData[0],SEISMIC_SUBVOLUME_SIZE*4, 1, fdata);
 	    Mat descriptorsVector = Mat_<float>(tmpData, true);
 	    descriptorsVector.col(0).copyTo(trainingData.col(trainingCount));
+            fclose(fdata);
 	    trainingCount++;
 	}
 	std::cout << " Finished (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ")" << std::endl;
