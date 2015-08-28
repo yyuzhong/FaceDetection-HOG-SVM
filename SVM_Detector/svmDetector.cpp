@@ -2,6 +2,10 @@
 #include "svmDetector.h"
 
 using namespace cv;
+using namespace std;
+typedef int64_t INT64;
+#include <sys/time.h>
+#include <ctime>
 
 int main(int argc, const char** argv)
 {
@@ -88,6 +92,38 @@ int main(int argc, const char** argv)
 #pragma endregion
 }
 
+bool saveMatToFile(Mat inputMat, string outputFile)
+{
+    vector<int> p;
+    p.push_back(CV_IMWRITE_JPEG_QUALITY);
+    p.push_back(100);
+    vector<unsigned char> buf;
+
+    if(inputMat.data == NULL)
+    {
+        cout << "Nothing is save for NULL data" << endl;
+	return false;
+    }
+    
+    if((inputMat.cols > 1920)||(inputMat.rows > 1080))
+    {
+        float xfact = (float)1920.0/inputMat.cols;
+        float yfact = (float)1280.0/inputMat.rows;
+        resize(inputMat,inputMat,Size(),min(xfact,yfact),min(xfact,yfact));
+    }
+    
+    cv::imencode(".jpg", inputMat, buf, p);
+
+    const char *cfile = outputFile.c_str();
+    FILE* localFileHandle = fopen(cfile, "wb");
+    fwrite((void*)&buf[0], (unsigned int)buf.size(),1,localFileHandle);
+    fclose(localFileHandle);
+    
+    return true;
+}
+
+
+
 int imageDetection(Mat* inputImage, Ptr<ml::SVM> svm)
 {
 #pragma region Detect in image
@@ -96,10 +132,12 @@ int imageDetection(Mat* inputImage, Ptr<ml::SVM> svm)
 	if (outputImage.empty())
 		return -1;
 
-	namedWindow("Face Detection");
-	imshow("Face Detection", outputImage);
+	//namedWindow("Face Detection");
+	//imshow("Face Detection", outputImage);
 
-	waitKey();
+	//waitKey();
+        saveMatToFile(outputImage,"/var/www/html/imgproc/testout.jpg");	
+
 	return 0;
 
 #pragma endregion

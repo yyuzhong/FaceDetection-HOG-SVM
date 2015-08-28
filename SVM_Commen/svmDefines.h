@@ -6,6 +6,7 @@
 #define SVM_OUTPUT_NAME "SVM_MARC.yaml"
 #define WINDOW_SIZE 64
 #define DESCRIPTOR_SIZE 1764
+#define SEISMIC_SUBVOLUME_SIZE 27
 // Standard = 0.8
 #define DOWNSCALE_FACTOR 0.91
 // Standard = 5
