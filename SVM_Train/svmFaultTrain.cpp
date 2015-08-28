@@ -60,33 +60,43 @@ bool trainFaultSVM(String* dataTrainPath, String* labelTrainFile)
 		return false;
 	}
 
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
+
 	Mat trainingLabel = Mat_<int>(1, dataFileNames.size());
 	Mat trainingData = Mat_<float>(SEISMIC_SUBVOLUME_SIZE, dataFileNames.size());
 	int trainingCount = 0;
 
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
 
 	clock_t beginTime = clock();
 
         FILE *flabel = fopen((*labelTrainFile).c_str(),"r");
         int labelCount=0;
-        while(!feof(flabel))
+        while( labelCount<dataFileNames.size() && (!feof(flabel)) )
         {
             float v;
             fread((void*)(&v), sizeof(v), 1, flabel);
+            printf("%s:%d, %d:%f\n",__FUNCTION__,__LINE__,labelCount,v);
             trainingLabel.at<int>(0, labelCount) = v>0.5?1:0;
+            /*Only for Debug!!!*/ if(labelCount%10==0) trainingLabel.at<int>(0, labelCount) = 1;
             labelCount++;
         }
         fclose(flabel);
-	std::cout << "Read attributes (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ") ...";
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
+
+	//std::cout << "Read attributes (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ") ...";
         //float tmpData[SEISMIC_SUBVOLUME_SIZE];
-        std::vector<float> tmpData;
+        std::vector<float> tmpData(SEISMIC_SUBVOLUME_SIZE);
 	for (std::vector<String>::iterator fileName = dataFileNames.begin(); fileName != dataFileNames.end(); ++fileName)
 	{
             FILE *fdata = fopen((*fileName).c_str(),"r");
+            //printf("%s:%d,%s\n",__FUNCTION__,__LINE__,(*fileName).c_str());
             fread(&tmpData[0],SEISMIC_SUBVOLUME_SIZE*4, 1, fdata);
+            //printf("%s:%d,%d\n",__FUNCTION__,__LINE__,trainingCount);
 	    Mat descriptorsVector = Mat_<float>(tmpData, true);
 	    descriptorsVector.col(0).copyTo(trainingData.col(trainingCount));
             fclose(fdata);
+            //printf("%s:%d,%d\n",__FUNCTION__,__LINE__,trainingCount);
 	    trainingCount++;
 	}
 	std::cout << " Finished (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ")" << std::endl;
@@ -103,7 +113,9 @@ bool trainFaultSVM(String* dataTrainPath, String* labelTrainFile)
 	svm->train(tData);
 	std::cout << " Finished (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ")" << std::endl;
 
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
 	svm->save(SVM_OUTPUT_NAME);
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
 
 	return true;
 }
