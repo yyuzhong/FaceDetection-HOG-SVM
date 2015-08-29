@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <sys/stat.h>
 
 #include "../SVM_Commen/svmDefines.h"
 
@@ -19,5 +20,6 @@ int main(int argc, const char** argv);
 bool trainSVM(cv::String* positiveTrainPath, cv::String* negativeTrainPath);
 
 bool trainFaultSVM(cv::String* dataTrainPath, cv::String* labelTrainFile);
+bool trainFaultSVM2(cv::String* dataTrainPath, cv::String* labelTrainFile);
 
 #endif // SVMTRAINING_H
