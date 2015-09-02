@@ -159,10 +159,18 @@ bool trainFaultSVM2(String* dataTrainPath, String* labelTrainFile)
         while( labelCount<sampleSize && (!feof(flabel)) )
         {
             float v;
-            fread((void*)(&v), sizeof(v), 1, flabel);
-            printf("%s:%d, %d:%f\n",__FUNCTION__,__LINE__,labelCount,v);
-            trainingLabel.at<int>(0, labelCount) = v>0.5?1:0;
-            /*Only for Debug!!!*/ if(labelCount%10==0) trainingLabel.at<int>(0, labelCount) = 1;
+            unsigned char temp[4];
+            fread((void*)(&temp[0]), sizeof(temp[0]), 1, flabel);
+            fread((void*)(&temp[1]), sizeof(temp[1]), 1, flabel);
+            fread((void*)(&temp[2]), sizeof(temp[2]), 1, flabel);
+            fread((void*)(&temp[3]), sizeof(temp[3]), 1, flabel);
+            //int itemp = (temp[0]<<0) | (temp[1]<<8) | (temp[2]<<16) | (temp[3]<<24);
+            unsigned int itemp =  (temp[3]<<0) | (temp[2]<<8) | (temp[1]<<16) | (temp[0]<<24);
+            v = *((float*)&itemp);
+
+            //printf("%s:%d, %d:%f\n",__FUNCTION__,__LINE__,labelCount,v);
+            trainingLabel.at<int>(0, labelCount) = v>0.5?1:-1;
+            /*Only for Debug!!! if(labelCount%10==0) trainingLabel.at<int>(0, labelCount) = 1;*/
             labelCount++;
         }
         fclose(flabel);
@@ -170,8 +178,29 @@ bool trainFaultSVM2(String* dataTrainPath, String* labelTrainFile)
 
         std:vector<float> sampleData(sampleSize);
         FILE *fsample = fopen((*dataTrainPath).c_str(),"r");
+        int sampleCount=0;
+        while( sampleCount<sampleSize && (!feof(fsample)) )
+        {
+            float v;
+            unsigned char temp[4];
+            fread((void*)(&temp[0]), sizeof(temp[0]), 1, flabel);
+            fread((void*)(&temp[1]), sizeof(temp[1]), 1, flabel);
+            fread((void*)(&temp[2]), sizeof(temp[2]), 1, flabel);
+            fread((void*)(&temp[3]), sizeof(temp[3]), 1, flabel);
+            //int itemp = (temp[0]<<0) | (temp[1]<<8) | (temp[2]<<16) | (temp[3]<<24);
+            unsigned int itemp =  (temp[3]<<0) | (temp[2]<<8) | (temp[1]<<16) | (temp[0]<<24);
+            v = *((float*)&itemp);
+            sampleData[sampleCount] = v;
+            //printf("%s:%d, %d:%f\n",__FUNCTION__,__LINE__,sampleCount,v);
+            sampleCount++;
+        }
+        fclose(fsample);
+        /*
+        std:vector<float> sampleData(sampleSize);
+        FILE *fsample = fopen((*dataTrainPath).c_str(),"r");
         fread(&sampleData[0], sampleSize*4, 1, fsample);
         fclose(fsample);
+        */
 
         int n1=101,n2=102,n3=103;
         int sub3=3,sub2=3,sub1=3;
@@ -206,17 +235,18 @@ bool trainFaultSVM2(String* dataTrainPath, String* labelTrainFile)
                                     tmpData[j3*(sub2*sub1)+j2*sub1+j1] = sampleData[tmp3*(n2*n1)+tmp2*n1+tmp1];
                                     complete++;
                                 } else {
-                                    tmpData[j3*(sub2*sub1)+j2*sub1+j1] = 0;
-                                }
-                                if(complete>=(sub3*sub2*sub1-1))
-                                {
-                                    Mat descriptorsVector = Mat_<float>(tmpData, true);
-                                    descriptorsVector.col(0).copyTo(trainingData.col(trainingCount));
+                                    tmpData[j3*(sub2*sub1)+j2*sub1+j1] = -1;
                                 }
                             }
                         }
                     }
                     acc++;
+                    //if(complete=(sub3*sub2*sub1-1))
+                    {
+                        Mat descriptorsVector = Mat_<float>(tmpData, true);
+                        descriptorsVector.col(0).copyTo(trainingData.col(trainingCount));
+                    }
+                    printf("%s:%d,sample data:%d,%f\n",__FUNCTION__,__LINE__,acc,sampleData[i3*(n2*n1)+i2*n1+i1]);
                     if(acc>=(n1*n2*n3-1)) {
                         finished = 1;
                         break;
