@@ -34,7 +34,7 @@ int main(int argc, const char** argv)
 		return -1;
 	}
 
-	bool train = trainFaultSVM2(&dataPath, &labelFile);
+	bool train = trainFaultSVM3(&dataPath, &labelFile);
 	if (!train)
 		return -1;
 	return 0;
@@ -276,3 +276,110 @@ bool trainFaultSVM2(String* dataTrainPath, String* labelTrainFile)
 
 	return true;
 }
+
+
+bool trainFaultSVM3(String* dataTrainPath, String* labelTrainFile)
+{
+	printf("Initialize\n");
+        std::vector<String> dataFileNames;
+	// Testing if there are images in the pathes
+	if (!dataTrainPath || (*dataTrainPath).length()<=0)
+	{
+		printf("There are no trainning data %s\n", *dataTrainPath);
+		return false;
+	}
+	if (!labelTrainFile || (*labelTrainFile).length()<=0)
+	{
+		printf("There are no label file\n");
+		return false;
+	}
+
+        glob(*dataTrainPath, dataFileNames);
+
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
+   
+        long sampleSize = GetFileSize(*labelTrainFile)/4;
+
+	Mat trainingLabel = Mat_<int>(1, sampleSize);
+	Mat trainingData = Mat_<float>(dataFileNames.size(), sampleSize);
+	int trainingCount = 0;
+
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
+
+	clock_t beginTime = clock();
+
+        FILE *flabel = fopen((*labelTrainFile).c_str(),"r");
+        int labelCount=0;
+        while( labelCount<sampleSize && (!feof(flabel)) )
+        {
+            float v;
+            unsigned char temp[4];
+            fread((void*)(&temp[0]), sizeof(temp[0]), 1, flabel);
+            fread((void*)(&temp[1]), sizeof(temp[1]), 1, flabel);
+            fread((void*)(&temp[2]), sizeof(temp[2]), 1, flabel);
+            fread((void*)(&temp[3]), sizeof(temp[3]), 1, flabel);
+            //int itemp = (temp[0]<<0) | (temp[1]<<8) | (temp[2]<<16) | (temp[3]<<24);
+            unsigned int itemp =  (temp[3]<<0) | (temp[2]<<8) | (temp[1]<<16) | (temp[0]<<24);
+            v = *((float*)&itemp);
+
+            //printf("%s:%d, %d:%f\n",__FUNCTION__,__LINE__,labelCount,v);
+            trainingLabel.at<int>(0, labelCount) = v>0.5?1:-1;
+            /*Only for Debug!!! if(labelCount%10==0) trainingLabel.at<int>(0, labelCount) = 1;*/
+            labelCount++;
+        }
+        fclose(flabel);
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
+        int fileIdx = 0;
+	for (std::vector<String>::iterator fileName = dataFileNames.begin(); fileName != dataFileNames.end(); ++fileName)
+	{
+            //std:vector<float> sampleData(sampleSize);
+            FILE *fsample = fopen((*fileName).c_str(),"r");
+            int sampleCount=0;
+            while( sampleCount<sampleSize && (!feof(fsample)) )
+            {
+                float v;
+                unsigned char temp[4];
+                fread((void*)(&temp[0]), sizeof(temp[0]), 1, flabel);
+                fread((void*)(&temp[1]), sizeof(temp[1]), 1, flabel);
+                fread((void*)(&temp[2]), sizeof(temp[2]), 1, flabel);
+                fread((void*)(&temp[3]), sizeof(temp[3]), 1, flabel);
+                //int itemp = (temp[0]<<0) | (temp[1]<<8) | (temp[2]<<16) | (temp[3]<<24);
+                unsigned int itemp =  (temp[3]<<0) | (temp[2]<<8) | (temp[1]<<16) | (temp[0]<<24);
+                v = *((float*)&itemp);
+                //sampleData[sampleCount] = v;
+                printf("%s:%d, file:%d,sample:%d:%f vs: %d\n",__FUNCTION__,__LINE__,fileIdx,sampleCount,v,trainingLabel.at<int>(0, sampleCount));
+                trainingData.at<float>(fileIdx,sampleCount) = v;
+                sampleCount++;
+            }
+            fclose(fsample);
+            fileIdx++;
+        }
+
+        /*
+        std:vector<float> sampleData(sampleSize);
+        FILE *fsample = fopen((*dataTrainPath).c_str(),"r");
+        fread(&sampleData[0], sampleSize*4, 1, fsample);
+        fclose(fsample);
+        */
+
+	std::cout << " Finished (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ")" << std::endl;
+
+	// Set up SVM's parameters
+	Ptr<ml::SVM> svm = ml::SVM::create();
+	svm->setType(ml::SVM::C_SVC);
+	svm->setKernel(ml::SVM::LINEAR);
+	svm->setTermCriteria(cvTermCriteria(CV_TERMCRIT_ITER, SVM_ITERATIONS, 1e-6));
+	// Create the Trainingdata
+	Ptr<ml::TrainData> tData = ml::TrainData::create(trainingData, ml::SampleTypes::COL_SAMPLE, trainingLabel);
+
+	std::cout << "Start SVM training (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ") ...";
+	svm->train(tData);
+	std::cout << " Finished (" << (clock() - beginTime) / (float)CLOCKS_PER_SEC << ")" << std::endl;
+
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
+	svm->save(SVM_OUTPUT_NAME);
+        printf("%s:%d\n",__FUNCTION__,__LINE__);
+
+	return true;
+}
+
