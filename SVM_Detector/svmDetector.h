@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
+#include <sys/stat.h>
 
 #include "../SVM_Commen/svmDefines.h"
 
@@ -23,6 +24,7 @@ cv::Mat faceDetection(cv::Mat* inputImage, cv::Ptr<cv::ml::SVM> svm);
 bool sortPreditcionVector(std::pair<cv::Point, cv::Vec2f> left, std::pair<cv::Point, cv::Vec2f> right);
 
 bool detectFaultSVM(cv::Ptr<cv::ml::SVM> svm, cv::String* volumePath, cv::String* saveFile);
+bool detectFaultSVM2(cv::Ptr<cv::ml::SVM> svm, cv::String* volumePath, cv::String* saveFile);
 
 
 #endif // SVMDETECTOR_H
