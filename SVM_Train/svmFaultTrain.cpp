@@ -301,6 +301,7 @@ bool trainFaultSVM3(String* dataTrainPath, String* labelTrainFile)
         long sampleSize = GetFileSize(*labelTrainFile)/4;
 
 	Mat trainingLabel = Mat_<int>(1, sampleSize);
+	Mat tempLabel = Mat_<float>(1, sampleSize);
 	Mat trainingData = Mat_<float>(dataFileNames.size(), sampleSize);
 	int trainingCount = 0;
 
@@ -323,6 +324,7 @@ bool trainFaultSVM3(String* dataTrainPath, String* labelTrainFile)
             v = *((float*)&itemp);
 
             //printf("%s:%d, %d:%f\n",__FUNCTION__,__LINE__,labelCount,v);
+            tempLabel.at<float>(0, labelCount) = v;
             trainingLabel.at<int>(0, labelCount) = v>0.5?1:-1;
             /*Only for Debug!!! if(labelCount%10==0) trainingLabel.at<int>(0, labelCount) = 1;*/
             labelCount++;
@@ -347,7 +349,7 @@ bool trainFaultSVM3(String* dataTrainPath, String* labelTrainFile)
                 unsigned int itemp =  (temp[3]<<0) | (temp[2]<<8) | (temp[1]<<16) | (temp[0]<<24);
                 v = *((float*)&itemp);
                 //sampleData[sampleCount] = v;
-                printf("%s:%d, file:%d,sample:%d:%f vs: %d\n",__FUNCTION__,__LINE__,fileIdx,sampleCount,v,trainingLabel.at<int>(0, sampleCount));
+                //printf("%s:%d, file:%d,sample:%d:%f vs: %f\n",__FUNCTION__,__LINE__,fileIdx,sampleCount,v,tempLabel.at<float>(0, sampleCount));
                 trainingData.at<float>(fileIdx,sampleCount) = v;
                 sampleCount++;
             }
